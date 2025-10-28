@@ -1,0 +1,49 @@
+name: Deploy Gateway and Dashboard
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '18'
+
+      - name: Install dependencies for Gateway
+        run: |
+          cd gateway
+          npm install
+
+      - name: Build Gateway Docker image
+        run: |
+          cd gateway
+          docker build -t secure-api-gateway/gateway .
+
+      - name: Install dependencies for Dashboard
+        run: |
+          cd dashboard
+          npm install
+
+      - name: Build Dashboard Docker image
+        run: |
+          cd dashboard
+          docker build -t secure-api-gateway/dashboard .
+
+      - name: Push Docker images to registry
+        run: |
+          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+          docker push secure-api-gateway/gateway
+          docker push secure-api-gateway/dashboard
+
+      - name: Deploy to Production
+        run: |
+          ssh user@your-server "docker pull secure-api-gateway/gateway && docker pull secure-api-gateway/dashboard && docker-compose up -d"
