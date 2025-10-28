@@ -1,11 +1,6 @@
 import { Schema, model } from 'mongoose';
 
 const userSchema = new Schema({
-  id: {
-    type: String,
-    required: true,
-    unique: true,
-  },
   email: {
     type: String,
     required: true,
@@ -17,8 +12,8 @@ const userSchema = new Schema({
   },
   role: {
     type: String,
-    enum: ['admin', 'dev'],
-    default: 'dev',
+    enum: ['admin', 'dev', 'user'],
+    default: 'user',
   },
   createdAt: {
     type: Date,
@@ -30,6 +25,21 @@ const userSchema = new Schema({
   },
 });
 
+// Add virtual id getter so tests can use `user.id`
+userSchema.virtual('id').get(function (this: any) {
+  return this._id ? String(this._id) : undefined;
+});
+
+userSchema.set('toJSON', {
+  virtuals: true,
+  transform: (_doc, ret) => {
+    delete ret._id;
+    delete ret.__v;
+    return ret;
+  },
+});
+
 const User = model('User', userSchema);
 
+export { User };
 export default User;

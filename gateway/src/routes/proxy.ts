@@ -9,8 +9,9 @@ router.all('*', authenticate, async (req, res) => {
     try {
         const response = await proxyRequest(req);
         res.status(response.status).json(response.data);
-    } catch (error) {
-        res.status(500).json({ message: 'Error processing request', error: error.message });
+    } catch (error: any) {
+        const message = error && (error.message || String(error)) ? (error.message || String(error)) : 'Unknown error';
+        res.status(500).json({ message: 'Error processing request', error: message });
     }
 });
 

@@ -13,7 +13,8 @@ const helmetMiddleware = helmet({
   frameguard: { action: 'deny' },
   xssFilter: true,
   noSniff: true,
-  hidePoweredBy: { setTo: 'PHP 4.2.0' },
+  // hidePoweredBy option expects a boolean; keep it enabled
+  hidePoweredBy: true,
 });
 
 export default helmetMiddleware;

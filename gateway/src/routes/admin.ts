@@ -11,8 +11,8 @@ router.use(checkAdmin);
 router.get('/logs', async (req, res) => {
     const { limit = 50, page = 1, filter } = req.query;
     try {
-        const logs = await getLogs({ limit, page, filter });
-        res.json(logs);
+    const logs = await getLogs({ limit, page, filter });
+    res.json({ logs });
     } catch (error) {
         res.status(500).json({ error: 'Failed to fetch logs' });
     }

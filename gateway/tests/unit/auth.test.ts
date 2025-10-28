@@ -3,7 +3,7 @@ import { app } from '../../src/server';
 import { createUser, deleteUser } from '../../src/services/auth.service';
 
 describe('Auth Middleware', () => {
-  let user;
+  let user: any;
 
   beforeAll(async () => {
     user = await createUser({ email: 'test@example.com', password: 'password123' });

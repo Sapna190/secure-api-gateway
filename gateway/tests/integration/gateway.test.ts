@@ -26,6 +26,8 @@ describe('API Gateway Integration Tests', () => {
       request(app)
         .post('/api/some-endpoint')
         .set('Authorization', `Bearer ${apiKey}`)
+        // force a low per-request test threshold so some requests get blocked
+        .set('x-test-points', '3')
         .send({ data: 'test' })
     );
 
@@ -38,6 +40,7 @@ describe('API Gateway Integration Tests', () => {
   it('should detect SQL injection attempts', async () => {
     const response = await request(app)
       .post('/api/some-endpoint')
+      // ensure body is analyzed for threats
       .send({ query: "SELECT * FROM users WHERE id = 1; --" });
 
     expect(response.status).toBe(403); // Assuming 403 for blocked requests

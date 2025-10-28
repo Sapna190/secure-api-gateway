@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { logger } from './logger';
-import { BlocklistService } from './blocklist';
+import BlocklistService from './blocklist';
 
 const threatPatterns = {
     sqlInjection: /\b(SELECT|UNION|INSERT|UPDATE|DELETE|DROP|--|#)\b/i,
@@ -32,8 +32,8 @@ export class ThreatService {
 
     static async handleThreat(req: Request, res: Response, threatScore: number) {
         if (threatScore > 80) {
-            const clientIp = req.ip;
-            await BlocklistService.blockIp(clientIp, 3600); // Block for 1 hour
+            const clientIp = String(req.ip || (req.headers['x-forwarded-for'] as string) || 'unknown');
+            await BlocklistService.addToBlocklist(clientIp, 3600); // Block for 1 hour
             logger.error('Request blocked due to high threat score', { clientIp, threatScore });
             return res.status(403).json({ ok: false, reason: 'blocked', details: 'High threat score' });
         } else if (threatScore > 50) {

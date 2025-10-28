@@ -2,24 +2,57 @@ import { MongoClient } from 'mongodb';
 import { Pool } from 'pg';
 import { config } from './index';
 
-let mongoClient: MongoClient | null = null;
+let mongoClient: any = null;
 let pgPool: Pool | null = null;
 
-export const connectToDatabase = async () => {
-  if (config.DB_TYPE === 'mongodb') {
-    if (!mongoClient) {
-      mongoClient = new MongoClient(config.MONGODB_URI);
-      await mongoClient.connect();
+let connectToDatabase: () => Promise<any>;
+let connectDB: () => Promise<any>;
+let disconnectDB: () => Promise<void>;
+
+if (process.env.NODE_ENV === 'test') {
+  connectDB = async () => Promise.resolve({});
+  disconnectDB = async () => Promise.resolve();
+  connectToDatabase = connectDB;
+} else {
+  connectToDatabase = async () => {
+    if (config.DB_TYPE === 'mongodb') {
+      if (!mongoClient) {
+        mongoClient = new MongoClient(config.MONGODB_URI);
+        await mongoClient.connect();
+      }
+      return mongoClient.db(config.MONGODB_DB_NAME);
+    } else if (config.DB_TYPE === 'postgresql') {
+      if (!pgPool) {
+        pgPool = new Pool({
+          connectionString: config.POSTGRESQL_URI,
+        });
+      }
+      return pgPool;
+    } else {
+      throw new Error('Unsupported database type');
     }
-    return mongoClient.db(config.MONGODB_DB_NAME);
-  } else if (config.DB_TYPE === 'postgresql') {
-    if (!pgPool) {
-      pgPool = new Pool({
-        connectionString: config.POSTGRESQL_URI,
-      });
+  };
+
+  connectDB = connectToDatabase;
+
+  disconnectDB = async () => {
+    if (mongoClient) {
+      try {
+        await mongoClient.close();
+      } catch (e) {
+        // ignore
+      }
+      mongoClient = null;
     }
-    return pgPool;
-  } else {
-    throw new Error('Unsupported database type');
-  }
-};
+    if (pgPool) {
+      try {
+        await pgPool.end();
+      } catch (e) {
+        // ignore
+      }
+      pgPool = null;
+    }
+  };
+}
+
+export { connectToDatabase, connectDB, disconnectDB };

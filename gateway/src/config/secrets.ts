@@ -9,4 +9,13 @@ const secrets = {
   redisPassword: process.env.REDIS_PASSWORD || 'default_redis_password',
 };
 
+export const getSecret = (name: string): string | undefined => {
+  // First check exact env var
+  if (process.env[name]) return process.env[name];
+  // common name mappings
+  const key = name.toLowerCase();
+  if ((secrets as any)[key]) return (secrets as any)[key];
+  return undefined;
+};
+
 export default secrets;

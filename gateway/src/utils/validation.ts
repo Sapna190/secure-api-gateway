@@ -1,4 +1,5 @@
 import { body, validationResult } from 'express-validator';
+import { Request, Response, NextFunction } from 'express';
 
 export const validateLogin = [
   body('email').isEmail().withMessage('Must be a valid email address'),
@@ -9,7 +10,7 @@ export const validateApiKey = [
   body('apiKey').notEmpty().withMessage('API key is required'),
 ];
 
-export const validateRequest = (req, res, next) => {
+export const validateRequest = (req: Request, res: Response, next: NextFunction) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
